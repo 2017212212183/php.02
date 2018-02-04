@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>php学习</title>
+    <script src="js/1.9.1jquery.min.js"></script>
+    <script src="js/ajaxfileupload.js"></script>
+    <style>
+        ul{ font-style: normal; list-style: none; padding: 0; width: 500px; margin: 50px auto}
+        em{ font-style: normal; font-size: 14px; color: #4a4a4a; margin: 0 10px 10px 0}
+        a{ color: #4a4a4a; text-decoration: none;}
+        li{ overflow: hidden; border-bottom: 1px solid rgba(0,0,0,0.2); padding: 10px 0;}
+        h3{ font-weight: normal; font-size: 20px; line-height: 24px; margin: 0 0 10px 0}
+        h3 small{ float: right; font-size: 14px; color: rgba(0,0,0,0.5); margin: 0 2px; cursor: pointer}
+        h3 small:hover{ color: #000}
+        p{ font-size: 12px; color: rgba(0,0,0,0.4); line-height: 18px; margin: 0}
+        .wrapper{ overflow: hidden; width: 500px; margin: 0 auto}
+        .search{ text-align: right}
+        .add{ overflow: hidden}
+        .add a{ border: 1px solid #4a4a4a; border-radius: 5px; padding: 5px; display: block; float: left; }
+        .file{ overflow: hidden; margin: 10px 0}
+    </style>
+
+</head>
+<body>
+<div class="wrapper">
+    <h1>首页</h1>
+    <div class="search"><input type="text" placeholder="请输入标题名称" id="search-title"><input type="button" value="搜索" id="search-btn"></div>
+    <div class="add">
+        <a href="add.html">写文章</a>
+
+    </div>
+    <div class="file">
+        form上传：<br>
+        <form action="php/upload.php" method="post" enctype="multipart/form-data" >
+            <input type="file" id="form-file" name="file">
+            <input type="submit" value="上传">
+        </form>
+    </div>
+    <div class="file">
+        ajaxFileUpload上传:<br>
+        <input type="file" id="file" name="file">
+        <input type="button" id="file-btn" value="上传">
+    </div>
+    <img src="" id="imgs">
+    <ul id="list">
+        <li>
+            <h3><a href="">标题</a> <small> 修改</small><small>删除</small></h3>
+            <em>作者</em>
+            <em>分类</em>
+            <em>时间</em>
+            <p>概要</p>
+        </li>
+    </ul>
+    <ul id="imgbox">
+
+    </ul>
+<script>
+    $(function(){
+        /*页面加载*/
+        function getData() {
+            $.ajax({
+                url:"./php/getData.php",
+                type:"get",
+                dataType:"json",
+                success:function (data) {
+                    var html = '';
+                    for(var i = 0; i<data.length; i++){
+                        html += '<li>\n' +
+                            '            <h3><a href="">'+data[i].title+'</a>' +
+                            ' <small class="update"><a href="update.html?id='+data[i].id+'"> 修改</a></small>' +
+                            '<small class="delete" data-id="'+data[i].id+'">删除</small></h3>\n' +
+                            '            <em>'+data[i].author+'</em>\n' +
+                            '            <em>'+data[i].label+'</em>\n' +
+                            '            <em>'+data[i].time+'</em>\n' +
+                            '            <p>'+data[i].content+'</p>\n' +
+                            '        </li>'
+                    }
+                    document.getElementById('list').innerHTML = html;
+                }
+            })
+            $.ajax({
+                url:"./php/getimgData.php",
+                type:"get",
+                dataType:"json",
+                success:function (data) {
+                    var html = '';
+                    for(var i = 0; i<data.length; i++){
+                        html += '<li><img src="'+data[i].path+'"></li>'
+                    }
+                    document.getElementById('imgbox').innerHTML = html;
+                }
+            })
+        }
+        getData();
+        /*搜索*/
+        $("#search-btn").click(function(){
+            $.ajax({
+                url:"./php/selectData.php",
+                type:"post",
+                data:{
+                    "title":$("#search-title").val(),
+                    "id":''
+                },
+                dataType:"json",
+                success:function (data) {
+                    if(data.length>0){
+                        var html = '';
+                        for(var i = 0; i<data.length; i++){
+                            html += '<li>\n' +
+                                '            <h3><a href="">'+data[i].title+'</a>' +
+                                ' <small class="update"><a href="update.html?id='+data[i].id+'"> 修改</a></small>' +
+                                '<small class="delete" data-id="'+data[i].id+'">删除</small></h3>\n' +
+                                '            <em>'+data[i].author+'</em>\n' +
+                                '            <em>'+data[i].label+'</em>\n' +
+                                '            <em>'+data[i].time+'</em>\n' +
+                                '            <p>'+data[i].content+'</p>\n' +
+                                '        </li>'
+                        }
+                        document.getElementById('list').innerHTML = html;
+                    }else{
+                        document.getElementById('list').innerHTML = "没有数据";
+                    }
+
+                }
+            })
+        })
+        /*删除*/
+        $("#list").on('click','.delete',function () {
+            $.ajax({
+                url:"./php/deleteData.php",
+                type:"post",
+                data:{
+                    id:$(this).attr("data-id")
+                },
+                dataType:"json",
+                success:function (data) {
+                    getData();
+                }
+            })
+        })
+
+        /*上传文件*/
+        $("#file-btn").click(function () {
+            $.ajaxFileUpload ({
+                url:'./php/upload.php',
+                secureuri:false, //是否启用安全提交，默认为false。
+                fileElementId:'file',//与页面处理代码中file相对应的ID值
+                dataType: 'text', //返回数据类型:text，xml，json，html,scritp,jsonp五种
+                success: function (data) {
+                        $("#imgs").attr('src',data)
+                }
+            })
+        })
+
+
+
+    })
+</script>
+</div>
+</body>
+</html>

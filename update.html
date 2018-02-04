@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>写文章</title>
+    <style>
+        input[type='text'],select,textarea{ height: 25px; line-height: 25px; display: block; width: 500px; margin: 10px auto;}
+        textarea{ height: 300px;}
+        input[type='button']{ width: 300px; display: block; margin: 0 auto}
+    </style>
+    <script src="js/1.9.1jquery.min.js"></script>
+</head>
+<body style="padding-top: 100px;">
+<input type="text" placeholder="标题" id="title">
+<input type="text" placeholder="作者" id="author">
+<input type="text" placeholder="分类" id="label">
+<textarea placeholder="内容" id="content"></textarea>
+<input type="button" id="update" value="修改">
+
+<script>
+    $(function(){
+        var id = window.location.search.split('=')[1];
+        console.log(id);
+        $.ajax({
+            url:"./php/selectData.php",
+            type:"post",
+            data:{
+                "id":id,
+                "title":''
+            },
+            dataType:"json",
+            success:function (data) {
+                $("#title").val(data[0].title)
+                $("#author").val(data[0].author)
+                $("#label").val(data[0].label)
+                $("#content").val(data[0].content)
+            }
+        })
+
+        $("#update").click(function(){
+            $.ajax({
+                url:"./php/updateData.php",
+                type:"post",
+                data:{
+                    "id":id,
+                    "title":$("#title").val(),
+                    "author":$("#author").val(),
+                    "label":$("#label").val(),
+                    "content":$("#content").val()
+                },
+                dataType:"json",
+                success:function (data) {
+                    if(data){
+                        window.location.href = 'index.html'
+                    }else{
+                        alert('修改失败')
+                    }
+                }
+            })
+        })
+
+
+    })
+</script>
+
+</body>
+</html>
+
+
